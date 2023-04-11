@@ -1,2 +1,0 @@
-# image-acquisition
-React app

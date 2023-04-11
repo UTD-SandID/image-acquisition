@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
@@ -11,7 +10,7 @@ export default function App() {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
-  const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
+ // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export default function App() {
     if (image) {
       try {
         const asset = await MediaLibrary.createAssetAsync(image);
-        alert('Picture saved!');
+        alert('Picture saved! 🎉');
         setImage(null);
         console.log('saved successfully');
       } catch (error) {
@@ -48,11 +47,10 @@ export default function App() {
   };
 
   if (hasCameraPermission === false) {
-    return <Text>No permission to access camera</Text>;
+    return <Text>No access to camera</Text>;
   }
 
   return (
-    <NavigationContainer>
     <View style={styles.container}>
       {!image ? (
         <Camera
@@ -83,7 +81,7 @@ export default function App() {
       ) : (
         <Image source={{ uri: image }} style={styles.camera} />
       )}
-
+      
       <View style={styles.controls}>
         {image ? (
           <View
@@ -93,11 +91,6 @@ export default function App() {
               paddingHorizontal: 50,
             }}
           >
-            <Button
-              title="Back"
-              //onPress={() => setImage(null)}
-              icon="leftsquareo"
-            />
             <Button
               title="Re-take"
               onPress={() => setImage(null)}
@@ -110,7 +103,6 @@ export default function App() {
         )}
       </View>
     </View>
-    </NavigationContainer>
   );
 }
 
