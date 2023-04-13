@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Constants from 'expo-constants';
-import { Camera, CameraType } from 'expo-camera';
+import { Camera, CameraType, ImageType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { MaterialIcons } from '@expo/vector-icons';
 import Button from './Button';
 
-export default function CameraPage() {
+export default function CameraPage({ navigation }) {
   
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [image, setImage] = useState(null);
@@ -22,10 +21,13 @@ export default function CameraPage() {
       })();
     }, []);
   
+    const picOptions = {exif:true,imageType:'jpg',quality:1};
+
+
     const takePicture = async () => {
       if (cameraRef) {
         try {
-          const data = await cameraRef.current.takePictureAsync();
+          const data = await cameraRef.current.takePictureAsync(picOptions);
           console.log(data);
           setImage(data.uri);
         } catch (error) {
@@ -47,6 +49,28 @@ export default function CameraPage() {
       }
     };
   
+    const sendImg = async () => {
+      if (cameraRef) {
+        try {
+            fetch('https://mywebsite.example/endpoint/', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+     // 'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      firstParam: 'yourValue',
+      secondParam: 'yourOtherValue',
+    })
+  })
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+
+
     if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
     }
@@ -68,13 +92,18 @@ export default function CameraPage() {
               }}
             >
               <Button
-                title=""
+                title=""//flip
                 icon="retweet"
                 onPress={() => {
                   setType(
                     type === CameraType.back ? CameraType.front : CameraType.back
                   );
                 }}
+              />
+              <Button
+                title=""//Gallery
+                icon="folder-images"
+                onPress={() => navigation.navigate('DetailsPage')}
               />
               
             </View>
@@ -98,9 +127,12 @@ export default function CameraPage() {
                 icon="retweet"
               />
               <Button title="Save" onPress={savePicture} icon="check" />
+              <Button title="Send" //onPress={sendImg} 
+              icon="export" />
             </View>
           ) : (
-            <Button title="Take a picture" onPress={takePicture} icon="camera" />
+            <Button title="Take a picture" onPress={takePicture} 
+            icon="camera" />
           )}
         </View>
       </View>
