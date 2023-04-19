@@ -12,7 +12,11 @@ export default function CameraPage({ navigation }) {
     const [type, setType] = useState(Camera.Constants.Type.back);
    // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
     const cameraRef = useRef(null);
-  
+   
+    //not set yet
+    const [LatitudeValue, setLat] = useState(null);
+    const [LongitudeValue, setLong] = useState(null);
+    
     useEffect(() => {
       (async () => {
         MediaLibrary.requestPermissionsAsync();
@@ -22,7 +26,6 @@ export default function CameraPage({ navigation }) {
     }, []);
   
     const picOptions = {exif:true,imageType:'jpg',quality:1};
-
 
     const takePicture = async () => {
       if (cameraRef) {
@@ -49,27 +52,44 @@ export default function CameraPage({ navigation }) {
       }
     };
   
-    const sendImg = async () => {
-      if (cameraRef) {
-        try {
-            fetch('https://mywebsite.example/endpoint/', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-     // 'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      firstParam: 'yourValue',
-      secondParam: 'yourOtherValue',
-    })
-  })
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    };
 
+//does not have lat and long values
+    const sendImg = async () => {
+
+      const requestObject = {
+        image: {
+          uri: image,
+          name: 'image.jpg',
+          type: 'image/jpeg'
+        },
+        location: {
+          latitude: LatitudeValue,
+          longitude: LongitudeValue
+        }
+      };
+      
+      fetch('https://mywebsite.example/endpoint/', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestObject)
+      })
+      .then(response => {
+        // handle the response
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Server response was not ok.');
+        }
+      })
+      .catch(error => {
+        // handle the error
+        console.error(error.message);
+      });
+      
+    };
 
     if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
