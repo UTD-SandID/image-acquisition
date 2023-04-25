@@ -1,49 +1,84 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Image,Alert } from 'react-native';
 import Constants from 'expo-constants';
 import { Camera, CameraType, ImageType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import Button from './Button';
-
+import * as Location from 'expo-location';
 export default function CameraPage({ navigation }) {
   
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [image, setImage] = useState(null);
-    const [type, setType] = useState(Camera.Constants.Type.back);
-   // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
+    //const [type, setType] = useState(Camera.Constants.Type.back); was for flipping camera
+   // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off); was for flash
     const cameraRef = useRef(null);
-   
-    //not set yet
+    const [widthVal, setWidth] = useState(null);
+    const [heightVal, setHeight] = useState(null);
+    const [metaData, setMeta] = useState(null);
     const [LatitudeValue, setLat] = useState(null);
     const [LongitudeValue, setLong] = useState(null);
-    
+    const [hasLocationPermission, setHasLocationPermission] = useState(null);
+
+    //when this page is opened, check for nd request permissions, prompt user to take calibration picture
     useEffect(() => {
       (async () => {
         MediaLibrary.requestPermissionsAsync();
         const cameraStatus = await Camera.requestCameraPermissionsAsync();
         setHasCameraPermission(cameraStatus.status === 'granted');
+        const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
+        setHasLocationPermission(locationStatus === 'granted');
+        if(widthVal==null||heightVal==null){
+           
+            Alert.alert(  
+                'Initial Calibration',  
+                'Please take a picture to calibrate the camera.',  
+                [   
+                    {text: 'OK', onPress: () => console.log('OK Pressed')},  
+                ]  
+            );  
+          
+        }
       })();
     }, []);
   
-    const picOptions = {exif:true,imageType:'jpg',quality:1};
-
+    //take picture with correct settings, get height and width, get location coordinates
     const takePicture = async () => {
       if (cameraRef) {
         try {
-          const data = await cameraRef.current.takePictureAsync(picOptions);
-          console.log(data);
-          setImage(data.uri);
+          const picOptions = {exif:true,imageType:'jpg',quality:0.9};
+          const { uri, width, height, exif } = await cameraRef.current.takePictureAsync(picOptions);
+
+          setImage(uri);
+          setWidth(width);
+          setHeight(height);
+
+          const location = await Location.getCurrentPositionAsync({});
+          exif['GPSLatitude'] = location.coords.latitude;
+          exif['GPSLatitudeRef'] = location.coords.latitude < 0 ? 'S' : 'N';
+          exif['GPSLongitude'] = location.coords.longitude;
+          exif['GPSLongitudeRef'] = location.coords.longitude < 0 ? 'W' : 'E';
+          setMeta(exif);
+          
+          const { GPSLatitude, GPSLongitude } = metaData;
+          if (GPSLatitude && GPSLongitude ) {
+            setLat(GPSLatitude);
+            setLong(GPSLongitude);
+          } else {
+            console.log('GPS data not found in EXIF metadata');
+          }
+          console.log(`new Latitude: ${LatitudeValue},${LongitudeValue}`);
         } catch (error) {
           console.log(error);
         }
       }
     };
-  
+
+//save current picture to system gallery
     const savePicture = async () => {
       if (image) {
         try {
           const asset = await MediaLibrary.createAssetAsync(image);
-          alert('Picture saved! 🎉');
+          alert('Picture saved!');
           setImage(null);
           console.log('saved successfully');
         } catch (error) {
@@ -51,9 +86,8 @@ export default function CameraPage({ navigation }) {
         }
       }
     };
-  
 
-//does not have lat and long values
+    //TODO username and password have no values, put correct url, file name should be meaningful, untested
     const sendImg = async () => {
 
       const requestObject = {
@@ -62,10 +96,8 @@ export default function CameraPage({ navigation }) {
           name: 'image.jpg',
           type: 'image/jpeg'
         },
-        location: {
-          latitude: LatitudeValue,
-          longitude: LongitudeValue
-        }
+        latitude: LatitudeValue,
+        longitude: LongitudeValue
       };
       
       fetch('https://mywebsite.example/endpoint/', {
@@ -100,7 +132,7 @@ export default function CameraPage({ navigation }) {
         {!image ? (
           <Camera
             style={styles.camera}
-            type={type}
+            type={Camera.Constants.Type.back}
             ref={cameraRef}
             //flashMode={flash}
           >
@@ -115,9 +147,8 @@ export default function CameraPage({ navigation }) {
                 title=""//flip
                 icon="retweet"
                 onPress={() => {
-                  setType(
-                    type === CameraType.back ? CameraType.front : CameraType.back
-                  );
+                  //setType(type === CameraType.back ? CameraType.front : CameraType.back);
+                  // flipped camera to front, use button for smtg else
                 }}
               />
               <Button
