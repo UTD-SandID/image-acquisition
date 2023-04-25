@@ -20,14 +20,14 @@ const LoginDialog = ({ isVisible, onClose, onSave }) => {
             placeholder="Username"
             value={username}
             onChangeText={setUsername}
-            style={{ borderWidth: 1, borderColor: 'red', padding: 10 }}
+            style={{ borderWidth: 1, borderColor: 'blue', padding: 10 }}
           />
           <TextInput
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={true}
-            style={{ borderWidth: 1, borderColor: 'red', padding: 10, marginTop: 10 }}
+            style={{ borderWidth: 1, borderColor: 'blue', padding: 10, marginTop: 10 }}
           />
           <Button title="Save" onPress={handleSave} />
           <Button title="Cancel" onPress={onClose} />

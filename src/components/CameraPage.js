@@ -6,6 +6,7 @@ import * as MediaLibrary from 'expo-media-library';
 import Button from './Button';
 import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
+import Exif from 'react-native-exif';
 
 export default function CameraPage({ navigation }) {
   
@@ -28,7 +29,7 @@ export default function CameraPage({ navigation }) {
     const [password, setPassword] = useState('');
 
     
-    //when this page is opened, check for nd request permissions, prompt user to take calibration picture
+    //when this page is opened, check for and request permissions, prompt user to take calibration picture
     useEffect(() => {
       (async () => {
         MediaLibrary.requestPermissionsAsync();
@@ -51,24 +52,39 @@ export default function CameraPage({ navigation }) {
         }
       })();
     }, []);
+
+    //use Effects for state updates
+    useEffect(() => {
+      console.log(`Updated exif Metadata`);      
+      //console.log(metaData);
+    }, [metaData]);
+    useEffect(() => {
+      console.log(`new Lat : ${LatitudeValue}`);
+    }, [LatitudeValue]);
+    useEffect(() => {
+      console.log(`new Long: ${LongitudeValue}`);
+    }, [LongitudeValue]);
+    useEffect(() => {
+      console.log(`new user pass: ${username},${password}`);
+    }, [username, password]);
   
     const handleCalib = () => {
- 
       setCalib(true);
-      takePicture;
       setImage(null);
     };
 
     const handleUserSave = (newUsername, newPassword) => {
-      //console.log(`user pass: ${newUsername},${newPassword}`);
       setUsername(newUsername);
       setPassword(newPassword);
-      console.log(`user pass: ${username},${password}`); //doesnt update, need useEffect
     };
 
     const handleSend = () => {
-      setShowDialog(true);
+      if(username=='' || password==''){
+        setShowDialog(true);
+      }
+      
       //function for POST
+      //sendImg();
     };
 
 
@@ -90,27 +106,41 @@ export default function CameraPage({ navigation }) {
           exif['GPSLongitude'] = location.coords.longitude;
           exif['GPSLongitudeRef'] = location.coords.longitude < 0 ? 'W' : 'E';
           setMeta(exif);
-          saveLocation();
-          
+
+          if (location) {
+            setLat(location.coords.latitude);
+            setLong(location.coords.longitude);
+            console.log('GPS data set');
+          } else {
+            console.log('Location data not received');
+          }
+          //not used
+         // saveLocation();
+         //setLat(savedLocation.coords.latitude);
+          //setLong(savedLocation.coords.longitude);
+         
+          //in progress
+         // const imgDate = getDateTime(uri);
+        //  console.log(imgDate);
+
         } catch (error) {
           console.log(error);
         }
       }
     };
 
-    const saveLocation = async () => {
+   /* no good because async state update lags 
+   const saveLocation = async () => {
       const { GPSLatitude, GPSLongitude } = metaData || {};
           if (GPSLatitude && GPSLongitude ) {
             setLat(GPSLatitude);
             setLong(GPSLongitude);
+            console.log('GPS data set');
           } else {
             console.log('GPS data not found in EXIF metadata');
           }
-          //setLat(savedLocation.coords.latitude);
-          //setLong(savedLocation.coords.longitude);
-          
-          console.log(`new Lat Long: ${LatitudeValue},${LongitudeValue}`);
-    }
+    
+    }*/
 
 //save current picture to system gallery
     const savePicture = async () => {
@@ -126,9 +156,19 @@ export default function CameraPage({ navigation }) {
       }
     };
 
+    const getDateTime = async (uri) => {
+      try {
+        const mDate = await Exif.getMetaData(uri);
+        const dateTimeOriginal = mDate.DateTimeOriginal;
+        return dateTimeOriginal;
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     //TODO username and password have no values, put correct url, file name should be meaningful, untested
     const sendImg = async () => {
-
+      //const timeNow = new Date().toString();
       const requestObject = {
         image: {
           uri: image,
