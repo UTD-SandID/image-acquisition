@@ -5,20 +5,29 @@ import { Camera, CameraType, ImageType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import Button from './Button';
 import * as Location from 'expo-location';
+import LoginDialog from './LoginDialog';
+
 export default function CameraPage({ navigation }) {
   
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
+    const [hasLocationPermission, setHasLocationPermission] = useState(null);
     const [image, setImage] = useState(null);
     //const [type, setType] = useState(Camera.Constants.Type.back); was for flipping camera
    // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off); was for flash
     const cameraRef = useRef(null);
+
     const [widthVal, setWidth] = useState(null);
     const [heightVal, setHeight] = useState(null);
     const [metaData, setMeta] = useState(null);
     const [LatitudeValue, setLat] = useState(null);
     const [LongitudeValue, setLong] = useState(null);
-    const [hasLocationPermission, setHasLocationPermission] = useState(null);
+    const [calibrated, setCalib] = useState(false);
+    //const [savedLocation, setLoc] = useState(false);
+    const [showDialog, setShowDialog] = useState(false);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
+    
     //when this page is opened, check for nd request permissions, prompt user to take calibration picture
     useEffect(() => {
       (async () => {
@@ -27,6 +36,8 @@ export default function CameraPage({ navigation }) {
         setHasCameraPermission(cameraStatus.status === 'granted');
         const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
         setHasLocationPermission(locationStatus === 'granted');
+       // const location = await Location.getCurrentPositionAsync({});
+        //setLoc(location);
         if(widthVal==null||heightVal==null){
            
             Alert.alert(  
@@ -41,11 +52,31 @@ export default function CameraPage({ navigation }) {
       })();
     }, []);
   
+    const handleCalib = () => {
+ 
+      setCalib(true);
+      takePicture;
+      setImage(null);
+    };
+
+    const handleUserSave = (newUsername, newPassword) => {
+      //console.log(`user pass: ${newUsername},${newPassword}`);
+      setUsername(newUsername);
+      setPassword(newPassword);
+      console.log(`user pass: ${username},${password}`); //doesnt update, need useEffect
+    };
+
+    const handleSend = () => {
+      setShowDialog(true);
+      //function for POST
+    };
+
+
     //take picture with correct settings, get height and width, get location coordinates
     const takePicture = async () => {
       if (cameraRef) {
         try {
-          const picOptions = {exif:true,imageType:'jpg',quality:0.9};
+          const picOptions = {exif:true,imageType:'jpg',quality:1};
           const { uri, width, height, exif } = await cameraRef.current.takePictureAsync(picOptions);
 
           setImage(uri);
@@ -53,25 +84,33 @@ export default function CameraPage({ navigation }) {
           setHeight(height);
 
           const location = await Location.getCurrentPositionAsync({});
+          //setLoc(location);
           exif['GPSLatitude'] = location.coords.latitude;
           exif['GPSLatitudeRef'] = location.coords.latitude < 0 ? 'S' : 'N';
           exif['GPSLongitude'] = location.coords.longitude;
           exif['GPSLongitudeRef'] = location.coords.longitude < 0 ? 'W' : 'E';
           setMeta(exif);
+          saveLocation();
           
-          const { GPSLatitude, GPSLongitude } = metaData;
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+
+    const saveLocation = async () => {
+      const { GPSLatitude, GPSLongitude } = metaData || {};
           if (GPSLatitude && GPSLongitude ) {
             setLat(GPSLatitude);
             setLong(GPSLongitude);
           } else {
             console.log('GPS data not found in EXIF metadata');
           }
-          console.log(`new Latitude: ${LatitudeValue},${LongitudeValue}`);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    };
+          //setLat(savedLocation.coords.latitude);
+          //setLong(savedLocation.coords.longitude);
+          
+          console.log(`new Lat Long: ${LatitudeValue},${LongitudeValue}`);
+    }
 
 //save current picture to system gallery
     const savePicture = async () => {
@@ -126,9 +165,13 @@ export default function CameraPage({ navigation }) {
     if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
     }
+    if (hasLocationPermission === false) {
+      return <Text>No permission to access location</Text>;
+    }
   
     return (
       <View style={styles.container}>
+
         {!image ? (
           <Camera
             style={styles.camera}
@@ -165,27 +208,30 @@ export default function CameraPage({ navigation }) {
         
         <View style={styles.controls}>
           {image ? (
-            <View
-              style={{
+            calibrated ? (
+              <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 paddingHorizontal: 50,
-              }}
-            >
-              <Button
-                title="Re-take"
-                onPress={() => setImage(null)}
-                icon="retweet"
-              />
-              <Button title="Save" onPress={savePicture} icon="check" />
-              <Button title="Send" //onPress={sendImg} 
-              icon="export" />
-            </View>
+              }}>
+                <Button title="Re-take" onPress={() => setImage(null)} icon="retweet" />
+                <Button title="Save" onPress={savePicture} icon="check" />
+                <Button title="Send" onPress={handleSend} icon="export" />
+                <LoginDialog
+                  isVisible={showDialog}
+                  onClose={() => setShowDialog(false)}
+                  onSave={handleUserSave}
+                />
+              </View>
+            ) : (
+              <Button title="Done" onPress={handleCalib} icon="camera" />
+            )
           ) : (
-            <Button title="Take a picture" onPress={takePicture} 
-            icon="camera" />
+            <Button title="Take a picture" onPress={takePicture} icon="camera" />
           )}
         </View>
+
+
       </View>
       
     );
