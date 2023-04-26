@@ -8,8 +8,8 @@ import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
 import Exif from 'react-native-exif';
 
-export default function CameraPage({ navigation }) {
-  
+export default function CameraPage({ navigation, route }) {
+
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [hasLocationPermission, setHasLocationPermission] = useState(null);
     const [image, setImage] = useState(null);
@@ -28,6 +28,8 @@ export default function CameraPage({ navigation }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    var coinChoice = route.params.text
+    console.log(coinChoice)
     
     //when this page is opened, check for and request permissions, prompt user to take calibration picture
     useEffect(() => {

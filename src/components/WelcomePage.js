@@ -2,7 +2,7 @@ import {Text, View} from 'react-native';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { SelectList } from 'react-native-dropdown-select-list'
-import Button from './Button';
+import { Button } from 'react-native';
 
 
 const INSTRUCTIONS = [
@@ -20,7 +20,7 @@ const data = [
   { label: 'Dollar coin', value: 'dollarCoin' },
 ];
 
-const WelcomePage = () => {
+const WelcomePage = ({ navigation }) => {
   const [selected, setSelected] = React.useState("");
 
   const renderInstruction = ({ item }) => {
@@ -45,7 +45,13 @@ const WelcomePage = () => {
         <Text>Selected Value : </Text>
         <Text style={{marginTop:10,color:'gray'}}>{selected}</Text>
       </View>
-    </View> 
+      {selected && (
+      <Button
+                title="Confirm Selection"//Gallery
+                onPress={() => {navigation.navigate('CameraPage', {text: {selected}})}}
+              />
+      )}
+    </View>
   );
 };
 
@@ -63,6 +69,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  button: {
+    height: 40,
+    borderRadius: 6,
+    flexDirection: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
 });
 
 export default WelcomePage;
