@@ -32,6 +32,7 @@ export default function CameraPage({ navigation, route }) {
     const [showDialog, setShowDialog] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+<<<<<<< Updated upstream
 
     var coinChoice = route.params.text
     console.log(coinChoice)
@@ -48,9 +49,36 @@ export default function CameraPage({ navigation, route }) {
     //console.log(coinChoice)
     //console.log(coinValue)
     
+=======
+    const [coinValue, setCoinValue] = useState(null);
+
+     useEffect(() => {
+      (async () => {  
+        var coinChoice = route.params.text;
+        var penny = {"selected" : "penny"}
+        var nickel = {"selected" : "nickel"}
+        var dime = {"selected" : "dime"}
+        var quarter = {"selected" : "quarter"}
+        var dollarCoin = {"selected" : "dollarCoin"}
+
+        if (coinChoice.selected === penny.selected){
+          setCoinValue(0.750);
+        } else if (coinChoice.selected === nickel.selected){
+          setCoinValue(0.835);
+        } else if (coinChoice.selected === dime.selected){
+          setCoinValue(0.705);
+        } else if (coinChoice.selected === quarter.selected){
+          setCoinValue(0.955);
+        } else if (coinChoice.selected === dollarCoin.selected){
+          setCoinValue(1.043);
+        }
+      })();
+    }, []);
+
+>>>>>>> Stashed changes
     //when this page is opened, check for and request permissions, prompt user to take calibration picture
     useEffect(() => {
-      (async () => {
+      (async () => {  
         MediaLibrary.requestPermissionsAsync();
         const cameraStatus = await Camera.requestCameraPermissionsAsync();
         setHasCameraPermission(cameraStatus.status === 'granted');
@@ -86,6 +114,16 @@ export default function CameraPage({ navigation, route }) {
     useEffect(() => {
       console.log(`new user pass: ${username},${password}`);
     }, [username, password]);
+<<<<<<< Updated upstream
+=======
+    useEffect(() => {
+      console.log(`new time: ${timestamp}`);
+    }, [timestamp]);
+    useEffect(() => {
+      console.log(`new coinVal : ${coinValue}`);
+    }, [coinValue]);
+   
+>>>>>>> Stashed changes
   
     const handleCalib = () => {
       setCalib(true);
@@ -275,7 +313,11 @@ export default function CameraPage({ navigation, route }) {
                 icon="folder-images"
                 onPress={() => navigation.navigate('DetailsPage')}
               />
+<<<<<<< Updated upstream
               <HollowCircle size={100} borderWidth={4} color = "black" />
+=======
+               <HollowCircle size={125} borderWidth={4} color = "white" />
+>>>>>>> Stashed changes
             </View>
           </Camera>
         ) : (
