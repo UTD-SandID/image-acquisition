@@ -30,7 +30,7 @@ const LoginDialog = ({ isVisible, onClose, onSave }) => {
             style={{ borderWidth: 1, borderColor: 'blue', padding: 10, marginTop: 10 }}
           />
           <Button title="Save" onPress={handleSave} />
-          <Button title="Cancel" onPress={onClose} />
+          <Button title="Close" onPress={onClose} />
         </View>
       </View>
     </Modal>

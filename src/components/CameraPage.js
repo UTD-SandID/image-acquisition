@@ -9,7 +9,7 @@ import LoginDialog from './LoginDialog';
 
 import { Buffer } from 'buffer';
 import HollowCircle from './HollowCircle';
-import * as FileSystem from 'expo-file-system';
+//import * as FileSystem from 'expo-file-system';
 
 
 export default function CameraPage({ navigation, route }) {
@@ -32,7 +32,7 @@ export default function CameraPage({ navigation, route }) {
     const [showDialog, setShowDialog] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [base64String, setBase64String] = useState(null)
+    //const [base64String, setBase64String] = useState(null)
     const [coinValue, setCoinValue] = useState(0.750)
 
     var coinChoice = route.params.text
@@ -105,12 +105,26 @@ export default function CameraPage({ navigation, route }) {
     };
 
     const handleSend = () => {
-      if(username=='' || password==''){
+      if(username=='' || password==''||password==undefined||username==undefined){
         setShowDialog(true);
+
+      }
+      else {
+        sendImg();
       }
       
-      //function for POST
-      //sendImg();
+    };
+
+    const closeDia = () => {
+      if(username=='' || password==''||password==undefined||username==undefined){
+        setShowDialog(true);
+
+      }
+      else {
+        setShowDialog(false);
+        sendImg();
+      }
+      
     };
 
 
@@ -158,6 +172,7 @@ export default function CameraPage({ navigation, route }) {
 
     
    /* no good because async state update lags 
+
     const fileNaming = () => {
       console.log(`before call time: ${timestamp}`);
       const dateStr = getFormattedDate();
@@ -204,11 +219,13 @@ export default function CameraPage({ navigation, route }) {
       }
     };
 
-    //TODO  put correct url, file name should be meaningful, untested
+    //awaits may be needed? need to make file name
     const sendImg = async () => {
+      console.log('sending');
+      console.log(username);
       const formTime = timestamp;
-      const user = 'admin'
-      const pass = 'admin123'
+      //const user = 'admin'
+      //const pass = 'admin123'
       const formData = new FormData();
       formData.append("image", {
         uri: image,
@@ -223,7 +240,7 @@ export default function CameraPage({ navigation, route }) {
       fetch('http://3.144.134.244:8000/api/upload/', {
         method: 'POST',
         headers: {
-          'Authorization': 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
+          'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
           'Content-Type': 'multipart/form-data'
         },
         body: formData
@@ -244,40 +261,7 @@ export default function CameraPage({ navigation, route }) {
       
     };
 
-    /* CHAT GPT AWAIT VERSION
-    const sendImg = async () => {
-  try {
-    const formTime = timestamp;
-    const requestObject = {
-      image: {
-        uri: image,
-        name: 'image.jpg',
-        type: 'image/jpeg'
-      },
-      latitude: LatitudeValue,
-      longitude: LongitudeValue
-    };
 
-    const response = await fetch('http://3.17.207.109:8000/api/upload', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestObject)
-    });
-
-    if (response.ok) {
-      const json = await response.json();
-      // do something with the response data
-    } else {
-      throw new Error('Server response was not ok.');
-    }
-  } catch (error) {
-    console.error(error.message);
-  }
-};
-    */
 
     if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
@@ -333,11 +317,11 @@ export default function CameraPage({ navigation, route }) {
               }}>
                 <Button title="Re-take" onPress={() => setImage(null)} icon="retweet" />
                 <Button title="Save" onPress={savePicture} icon="check" />
-                <Button title="Send" onPress={sendImg} icon="export" /> 
+                <Button title="Send" onPress={handleSend} icon="export" /> 
                 <LoginDialog
                   isVisible={showDialog}
-                  onClose={() => setShowDialog(false)}
                   onSave={handleUserSave}
+                  onClose={() => {closeDia();}}
                 />
               </View>
             ) : (
