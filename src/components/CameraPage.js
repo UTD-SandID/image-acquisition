@@ -214,7 +214,7 @@ export default function CameraPage({ navigation, route }) {
       //   coin: 0.750
       // };
       
-      fetch('http://3.144.134.244:8000/api/upload/', {
+      fetch('http://172.31.46.167:8000/api/upload/', {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
