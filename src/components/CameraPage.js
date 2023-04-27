@@ -7,8 +7,12 @@ import Button from './Button';
 import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
 
+import { Buffer } from 'buffer';
+import HollowCircle from './HollowCircle';
+import * as FileSystem from 'expo-file-system';
 
-export default function CameraPage({ navigation }) {
+
+export default function CameraPage({ navigation, route }) {
   
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [hasLocationPermission, setHasLocationPermission] = useState(null);
@@ -28,7 +32,24 @@ export default function CameraPage({ navigation }) {
     const [showDialog, setShowDialog] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    
+    const [base64String, setBase64String] = useState(null)
+    const [coinValue, setCoinValue] = useState(0.750)
+
+    var coinChoice = route.params.text
+       // let coinValue;
+    // if (coinChoice === 'penny'){
+    //   coinValue = 0.750
+    // } else if (coinChoice === "nickel"){
+    //   coinValue = 0.835
+    // } else if (coinChoice === "dime"){
+    //   coinValue = 0.705
+    // } else if (coinChoice === "dollarCoin"){
+    //   coinValue = 1.043
+    // }
+    //console.log(coinChoice)
+    //console.log(coinValue)
+
+
     
     //when this page is opened, check for and request permissions, prompt user to take calibration picture
     useEffect(() => {
@@ -186,31 +207,34 @@ export default function CameraPage({ navigation }) {
     //TODO  put correct url, file name should be meaningful, untested
     const sendImg = async () => {
       const formTime = timestamp;
-      const requestObject = {
-        image: {
-          uri: image,
-          name: 'image.jpg',
-          type: 'image/jpeg'
-        },
-        latitude: LatitudeValue,
-        longitude: LongitudeValue
-        //coin
-      };
+      const user = 'admin'
+      const pass = 'admin123'
+      const formData = new FormData();
+      formData.append("image", {
+        uri: image,
+        type: "image/jpeg",
+        name: "image.jpg",
+      });
+      formData.append("latitude", LatitudeValue);
+      formData.append("longitude", LongitudeValue);
+      formData.append("coin", coinValue)
+  
       
-      fetch('http://3.17.207.109:8000/api/upload', {
+      fetch('http://3.144.134.244:8000/api/upload/', {
         method: 'POST',
         headers: {
-          'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-          'Content-Type': 'application/json'
+          'Authorization': 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64'),
+          'Content-Type': 'multipart/form-data'
         },
-        body: JSON.stringify(requestObject)
+        body: formData
       })
       .then(response => {
         // handle the response
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error('Server response was not ok.');
+          console.log(JSON.stringify(response));
+          throw new Error(response);
         }
       })
       .catch(error => {
@@ -292,7 +316,7 @@ export default function CameraPage({ navigation }) {
                 icon="folder-images"
                 onPress={() => navigation.navigate('DetailsPage')}
               />
-              
+               <HollowCircle size={100} borderWidth={4} color = "black" />
             </View>
           </Camera>
         ) : (
@@ -309,7 +333,7 @@ export default function CameraPage({ navigation }) {
               }}>
                 <Button title="Re-take" onPress={() => setImage(null)} icon="retweet" />
                 <Button title="Save" onPress={savePicture} icon="check" />
-                <Button title="Send" onPress={handleSend} icon="export" />
+                <Button title="Send" onPress={sendImg} icon="export" /> 
                 <LoginDialog
                   isVisible={showDialog}
                   onClose={() => setShowDialog(false)}
