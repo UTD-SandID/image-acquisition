@@ -10,8 +10,8 @@ const HollowCircle = ({ size, borderWidth, color }) => {
     <View
       style={{
         position: 'absolute',
-        bottom: -600,
-        left: 10,
+        bottom: -500,
+        left: 50,
         width: circleSize,
         height: circleSize,
         borderRadius: circleSize / 2,

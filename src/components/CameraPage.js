@@ -33,21 +33,30 @@ export default function CameraPage({ navigation, route }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     //const [base64String, setBase64String] = useState(null)
-    const [coinValue, setCoinValue] = useState(0.750)
+    const [coinValue, setCoinValue] = useState(null);
 
-    var coinChoice = route.params.text
-       // let coinValue;
-    // if (coinChoice === 'penny'){
-    //   coinValue = 0.750
-    // } else if (coinChoice === "nickel"){
-    //   coinValue = 0.835
-    // } else if (coinChoice === "dime"){
-    //   coinValue = 0.705
-    // } else if (coinChoice === "dollarCoin"){
-    //   coinValue = 1.043
-    // }
-    //console.log(coinChoice)
-    //console.log(coinValue)
+    useEffect(() => {
+     (async () => {  
+       var coinChoice = route.params.text;
+       var penny = {"selected" : "penny"}
+       var nickel = {"selected" : "nickel"}
+       var dime = {"selected" : "dime"}
+       var quarter = {"selected" : "quarter"}
+       var dollarCoin = {"selected" : "dollarCoin"}
+
+       if (coinChoice.selected === penny.selected){
+         setCoinValue(0.750);
+       } else if (coinChoice.selected === nickel.selected){
+         setCoinValue(0.835);
+       } else if (coinChoice.selected === dime.selected){
+         setCoinValue(0.705);
+       } else if (coinChoice.selected === quarter.selected){
+         setCoinValue(0.955);
+       } else if (coinChoice.selected === dollarCoin.selected){
+         setCoinValue(1.043);
+       }
+     })();
+   }, []);
 
 
     
@@ -92,6 +101,9 @@ export default function CameraPage({ navigation, route }) {
     useEffect(() => {
       console.log(`new time: ${timestamp}`);
     }, [timestamp]);
+    useEffect(() => {
+      console.log(`new coinVal : ${coinValue}`);
+    }, [coinValue]);
    
   
     const handleCalib = () => {
@@ -300,7 +312,7 @@ export default function CameraPage({ navigation, route }) {
                 icon="folder-images"
                 onPress={() => navigation.navigate('DetailsPage')}
               />
-               <HollowCircle size={100} borderWidth={4} color = "black" />
+               <HollowCircle size={125} borderWidth={4} color = "white" />
             </View>
           </Camera>
         ) : (
