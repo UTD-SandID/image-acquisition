@@ -107,7 +107,7 @@ export default function DetailsPage({navigation}) {
         <TouchableOpacity style={styles.headerButton} onPress={sendTemp}>
           <Text style={styles.headerButtonText}>Share</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={pickTemp}>
+        <TouchableOpacity style={styles.headerButton} onPress={pickImages}>
           <Text style={styles.headerButtonText}>Pick Images</Text>
         </TouchableOpacity>
       </SafeAreaView>

@@ -235,14 +235,16 @@ export default function CameraPage({ navigation, route }) {
     const sendImg = async () => {
       console.log('sending');
       console.log(username);
-      const formTime = timestamp;
+      //const formTime = timestamp;
+      const fileName = (`${username}_${timestamp}.jpg`);
+      console.log(fileName)
       //const user = 'admin'
       //const pass = 'admin123'
       const formData = new FormData();
       formData.append("image", {
         uri: image,
         type: "image/jpeg",
-        name: "image.jpg",
+        name: fileName,
       });
       formData.append("latitude", LatitudeValue);
       formData.append("longitude", LongitudeValue);
