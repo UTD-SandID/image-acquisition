@@ -6,14 +6,14 @@ import * as MediaLibrary from 'expo-media-library';
 import Button from './Button';
 import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
-import Exif from 'react-native-exif';
+
 
 export default function CameraPage({ navigation }) {
   
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [hasLocationPermission, setHasLocationPermission] = useState(null);
     const [image, setImage] = useState(null);
-    //const [type, setType] = useState(Camera.Constants.Type.back); was for flipping camera
+    const [type, setType] = useState(Camera.Constants.Type.back); // for flipping camera
    // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off); was for flash
     const cameraRef = useRef(null);
 
@@ -22,12 +22,13 @@ export default function CameraPage({ navigation }) {
     const [metaData, setMeta] = useState(null);
     const [LatitudeValue, setLat] = useState(null);
     const [LongitudeValue, setLong] = useState(null);
+    const [timestamp, setTime] = useState(null);
     const [calibrated, setCalib] = useState(false);
     //const [savedLocation, setLoc] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
+    
     
     //when this page is opened, check for and request permissions, prompt user to take calibration picture
     useEffect(() => {
@@ -67,6 +68,10 @@ export default function CameraPage({ navigation }) {
     useEffect(() => {
       console.log(`new user pass: ${username},${password}`);
     }, [username, password]);
+    useEffect(() => {
+      console.log(`new time: ${timestamp}`);
+    }, [timestamp]);
+   
   
     const handleCalib = () => {
       setCalib(true);
@@ -105,7 +110,13 @@ export default function CameraPage({ navigation }) {
           exif['GPSLatitudeRef'] = location.coords.latitude < 0 ? 'S' : 'N';
           exif['GPSLongitude'] = location.coords.longitude;
           exif['GPSLongitudeRef'] = location.coords.longitude < 0 ? 'W' : 'E';
+          
+          const timeNow = exif['DateTimeOriginal'];
+          const formattedTimestamp = timeNow.replace(/[: ]/g, '-');
+          exif['imgFileDate'] = formattedTimestamp;
+          
           setMeta(exif);
+          setTime(formattedTimestamp);
 
           if (location) {
             setLat(location.coords.latitude);
@@ -114,22 +125,38 @@ export default function CameraPage({ navigation }) {
           } else {
             console.log('Location data not received');
           }
-          //not used
-         // saveLocation();
-         //setLat(savedLocation.coords.latitude);
-          //setLong(savedLocation.coords.longitude);
-         
-          //in progress
-         // const imgDate = getDateTime(uri);
-        //  console.log(imgDate);
-
+ 
+         //console.log(exif);
         } catch (error) {
           console.log(error);
         }
       }
     };
 
+
+
+    
    /* no good because async state update lags 
+    const fileNaming = () => {
+      console.log(`before call time: ${timestamp}`);
+      const dateStr = getFormattedDate();
+      console.log(`after format time: ${dateStr}`);
+    }
+
+    const getFormattedDate = () => {
+      console.log(`inside call time: ${timestamp}`);
+      const time = timestamp;
+      if (!time) {
+        console.error('timestamp not found ');
+        return '';
+      }
+    
+      const formattedTimestamp = timestamp.replace(/[: ]/g, '-');
+      return formattedTimestamp;
+    };
+
+
+
    const saveLocation = async () => {
       const { GPSLatitude, GPSLongitude } = metaData || {};
           if (GPSLatitude && GPSLongitude ) {
@@ -156,19 +183,9 @@ export default function CameraPage({ navigation }) {
       }
     };
 
-    const getDateTime = async (uri) => {
-      try {
-        const mDate = await Exif.getMetaData(uri);
-        const dateTimeOriginal = mDate.DateTimeOriginal;
-        return dateTimeOriginal;
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    //TODO username and password have no values, put correct url, file name should be meaningful, untested
+    //TODO  put correct url, file name should be meaningful, untested
     const sendImg = async () => {
-      //const timeNow = new Date().toString();
+      const formTime = timestamp;
       const requestObject = {
         image: {
           uri: image,
@@ -177,9 +194,10 @@ export default function CameraPage({ navigation }) {
         },
         latitude: LatitudeValue,
         longitude: LongitudeValue
+        //coin
       };
       
-      fetch('https://mywebsite.example/endpoint/', {
+      fetch('http://3.17.207.109:8000/api/upload', {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
@@ -201,6 +219,41 @@ export default function CameraPage({ navigation }) {
       });
       
     };
+
+    /* CHAT GPT AWAIT VERSION
+    const sendImg = async () => {
+  try {
+    const formTime = timestamp;
+    const requestObject = {
+      image: {
+        uri: image,
+        name: 'image.jpg',
+        type: 'image/jpeg'
+      },
+      latitude: LatitudeValue,
+      longitude: LongitudeValue
+    };
+
+    const response = await fetch('http://3.17.207.109:8000/api/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestObject)
+    });
+
+    if (response.ok) {
+      const json = await response.json();
+      // do something with the response data
+    } else {
+      throw new Error('Server response was not ok.');
+    }
+  } catch (error) {
+    console.error(error.message);
+  }
+};
+    */
 
     if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
@@ -230,7 +283,7 @@ export default function CameraPage({ navigation }) {
                 title=""//flip
                 icon="retweet"
                 onPress={() => {
-                  //setType(type === CameraType.back ? CameraType.front : CameraType.back);
+                  setType(type === CameraType.back ? CameraType.front : CameraType.back);
                   // flipped camera to front, use button for smtg else
                 }}
               />
@@ -270,8 +323,6 @@ export default function CameraPage({ navigation }) {
             <Button title="Take a picture" onPress={takePicture} icon="camera" />
           )}
         </View>
-
-
       </View>
       
     );
