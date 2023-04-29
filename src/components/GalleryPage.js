@@ -8,12 +8,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 //import Exif from 'exif-js';
 
 //will become gallery page
-export default function DetailsPage({navigation}) {
+export default function GalleryPage({navigation}) {
 
   const [images, setImages] = useState([]);
   const { width } = useWindowDimensions();
 
-  const pickTemp = async () => {} //because I couldnt install expo image picker
   const pickImages = async () => {
 
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -101,9 +100,7 @@ export default function DetailsPage({navigation}) {
     return (
       <SafeAreaView style={styles.headerContainer}>
         <Text style={styles.headerTitle}>DetailsPage</Text>
-        <Button
-        title="Back to camera"
-        onPress={() => navigation.goBack()}/>
+       
         <TouchableOpacity style={styles.headerButton} onPress={sendTemp}>
           <Text style={styles.headerButtonText}>Share</Text>
         </TouchableOpacity>

@@ -6,10 +6,8 @@ import * as MediaLibrary from 'expo-media-library';
 import Button from './Button';
 import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
-
 import { Buffer } from 'buffer';
 import HollowCircle from './HollowCircle';
-//import * as FileSystem from 'expo-file-system';
 
 
 export default function CameraPage({ navigation, route }) {
@@ -17,23 +15,22 @@ export default function CameraPage({ navigation, route }) {
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [hasLocationPermission, setHasLocationPermission] = useState(null);
     const [image, setImage] = useState(null);
-    const [type, setType] = useState(Camera.Constants.Type.back); // for flipping camera
+    const [type, setType] = useState(Camera.Constants.Type.back); 
    // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off); was for flash
     const cameraRef = useRef(null);
 
-    const [widthVal, setWidth] = useState(null);
+    const [widthVal, setWidth] = useState(2376); //do not remove initial value
     const [heightVal, setHeight] = useState(null);
     const [metaData, setMeta] = useState(null);
     const [LatitudeValue, setLat] = useState(null);
     const [LongitudeValue, setLong] = useState(null);
     const [timestamp, setTime] = useState(null);
     const [calibrated, setCalib] = useState(false);
-    //const [savedLocation, setLoc] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    //const [base64String, setBase64String] = useState(null)
     const [coinValue, setCoinValue] = useState(null);
+    const [viewWidth, setViewWidth] = useState(370);
 
     useEffect(() => {
      (async () => {  
@@ -59,7 +56,6 @@ export default function CameraPage({ navigation, route }) {
    }, []);
 
 
-    
     //when this page is opened, check for and request permissions, prompt user to take calibration picture
     useEffect(() => {
       (async () => {
@@ -79,7 +75,6 @@ export default function CameraPage({ navigation, route }) {
                     {text: 'OK', onPress: () => console.log('OK Pressed')},  
                 ]  
             );  
-          
         }
       })();
     }, []);
@@ -109,6 +104,7 @@ export default function CameraPage({ navigation, route }) {
     const handleCalib = () => {
       setCalib(true);
       setImage(null);
+      console.log(`width of view : ${viewWidth}`);
     };
 
     const handleUserSave = (newUsername, newPassword) => {
@@ -183,39 +179,6 @@ export default function CameraPage({ navigation, route }) {
 
 
     
-   /* no good because async state update lags 
-
-    const fileNaming = () => {
-      console.log(`before call time: ${timestamp}`);
-      const dateStr = getFormattedDate();
-      console.log(`after format time: ${dateStr}`);
-    }
-
-    const getFormattedDate = () => {
-      console.log(`inside call time: ${timestamp}`);
-      const time = timestamp;
-      if (!time) {
-        console.error('timestamp not found ');
-        return '';
-      }
-    
-      const formattedTimestamp = timestamp.replace(/[: ]/g, '-');
-      return formattedTimestamp;
-    };
-
-
-
-   const saveLocation = async () => {
-      const { GPSLatitude, GPSLongitude } = metaData || {};
-          if (GPSLatitude && GPSLongitude ) {
-            setLat(GPSLatitude);
-            setLong(GPSLongitude);
-            console.log('GPS data set');
-          } else {
-            console.log('GPS data not found in EXIF metadata');
-          }
-    
-    }*/
 
 //save current picture to system gallery
     const savePicture = async () => {
@@ -231,15 +194,14 @@ export default function CameraPage({ navigation, route }) {
       }
     };
 
-    //awaits may be needed? need to make file name
+    //awaits may be needed?  
     const sendImg = async () => {
       console.log('sending');
       console.log(username);
-      //const formTime = timestamp;
+      
       const fileName = (`${username}_${timestamp}.jpg`);
       console.log(fileName)
-      //const user = 'admin'
-      //const pass = 'admin123'
+     
       const formData = new FormData();
       formData.append("image", {
         uri: image,
@@ -251,7 +213,7 @@ export default function CameraPage({ navigation, route }) {
       formData.append("coin", coinValue)
   
       
-      fetch('http://3.144.134.244:8000/api/upload/', {
+      fetch('http://3.144.191.114:8000/api/upload/', {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
@@ -284,10 +246,12 @@ export default function CameraPage({ navigation, route }) {
       return <Text>No permission to access location</Text>;
     }
   
+    //when view renders, onLayout saves width of view, used to scale coin outline
     return (
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={event => setViewWidth(event.nativeEvent.layout.width)}>
 
         {!image ? (
+        
           <Camera
             style={styles.camera}
             type={Camera.Constants.Type.back}
@@ -314,9 +278,10 @@ export default function CameraPage({ navigation, route }) {
                 icon="folder-images"
                 onPress={() => navigation.navigate('DetailsPage')}
               />
-               <HollowCircle size={125} borderWidth={4} color = "white" />
+               <HollowCircle size={coinValue*(750/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" />
             </View>
           </Camera>
+          
         ) : (
           <Image source={{ uri: image }} style={styles.camera} />
         )}
@@ -383,3 +348,14 @@ export default function CameraPage({ navigation, route }) {
       flex: 1,
     },
   });
+  /*
+   overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+
+  <View style={{ flex: 1 }}>
+          <View style={styles.overlay} />
+        </View>
+        coinValue*750
+  */
