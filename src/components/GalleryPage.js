@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Share } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import Exif from 'exif-js';
+import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
 import { Buffer } from 'buffer';
 
@@ -71,12 +72,12 @@ export default function GalleryPage({navigation}) {
 
   };
 
-  const sendImg = async () => {
+ /* const sendImg = async () => {
     console.log(image[0]);
     console.log('sending');
     console.log(username);
     
-    const fileName = ('`${username}_${timestamp}.jpg`');
+    const fileName = ('hjgjjhg.jpg');
     console.log(fileName);
    
     const formData = new FormData();
@@ -91,7 +92,7 @@ export default function GalleryPage({navigation}) {
     formData.append("image_uri", image[0]);
 
     
-    fetch('http://18.189.83.39:8000/api/upload/', {
+    fetch('http://75.12.150.23:8000/api/upload/', {
       method: 'POST',
       headers: {
         'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
@@ -113,7 +114,7 @@ export default function GalleryPage({navigation}) {
       console.error(error.message);
     });
     
-  };
+  };*/
 
  /* const sendTemp = async () => {
     console.log('will send');
@@ -155,8 +156,8 @@ export default function GalleryPage({navigation}) {
     } catch (error) {
       console.error(error.message);
     }
-  };
-/*
+  };*/
+
   const sendImg = async () => {
     
     //const fileName = (`${username}_${timestamp}.jpg`);
@@ -170,34 +171,48 @@ export default function GalleryPage({navigation}) {
     const formData = new FormData();
 
     image.forEach((image, index) => {
-      formData.append('image' + index, {
+        formData.append('image', {
         uri: image,
-        name: 'image' + index + '.jpg',
         type: image + '/jpeg',
-      });
+        name: 'image' + index + '.jpg',
+        });
 
-      formData.append("latitude", LatitudeValue);
-      formData.append("longitude", LongitudeValue);
-      formData.append("coin", coinValue)
+        const imageURI = (image[index]);
+
+        Exif.getData(imageURI, function() {
+          LatitudeValue = Exif.getTag(this, 'GPSLatitude');
+          LongitudeValue = Exif.getTag(this, 'GPSLatitudeRef');
+          console.log(LatitudeValue);
+          console.log(LongitudeValue);
+        });
+        
+        console.log(LatitudeValue);
+        console.log(LongitudeValue);
+        
+        console.log(LatitudeValue);
+        console.log(LongitudeValue);
+        console.log(image);
       /*try {
 
-        const exifData = Exif.parse(image);
-        const {latitude, longitude} = exifData.gps || {};
-        if (latitude && longitude) {
-          formData.append('lat' + index, latitude);
-          formData.append('long' + index, longitude);
+        
+        /*if (LatitudeValue && LongitudeValue) {
+          formData.append('latitude', LatitudeValue);
+          formData.append('longitude', LongitudeValue);
         }
       } catch (error) {
         console.error('Error Parsing EXIF data:', error);
-      }
+      }*/
       
-    });
+      formData.append('latitude', LatitudeValue);
+      formData.append('longitude', LongitudeValue);
+      formData.append("coin", coinValue);
+      formData.append("image_uri", image);
 
-    fetch('http://18.189.83.39:8000/api/upload/', {
+      fetch('http://75.12.150.23:8000/api/upload/', {
       method: 'POST',
       headers: {
         'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-        //'Content-Type': 'multipart/form-data'
+        'Content-Type': 'multipart/form-data'
       },
       body: formData
     })
@@ -214,12 +229,14 @@ export default function GalleryPage({navigation}) {
       // handle the error
       console.error(error.message);
     });
+      
+    });
 
   } catch (error) {
     console.error(error.message);
   }
     
-  };*/
+  };
 
   const CustomHeader = () => {
     return (

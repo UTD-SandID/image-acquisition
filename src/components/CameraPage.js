@@ -214,7 +214,7 @@ export default function CameraPage({ navigation, route }) {
       formData.append("image_uri", image);
   
       
-      fetch('http://18.189.83.39:8000/api/upload/', {
+      fetch('http://75.12.150.23:8000/api/upload/', {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
