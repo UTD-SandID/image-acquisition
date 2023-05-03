@@ -211,9 +211,10 @@ export default function CameraPage({ navigation, route }) {
       formData.append("latitude", LatitudeValue);
       formData.append("longitude", LongitudeValue);
       formData.append("coin", coinValue)
+      formData.append("image_uri", image);
   
       
-      fetch('http://3.144.191.114:8000/api/upload/', {
+      fetch('http://18.189.83.39:8000/api/upload/', {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
@@ -236,8 +237,6 @@ export default function CameraPage({ navigation, route }) {
       });
       
     };
-
-
 
     if (hasCameraPermission === false) {
       return <Text>No access to camera</Text>;
@@ -276,7 +275,7 @@ export default function CameraPage({ navigation, route }) {
               <Button
                 title=""//Gallery
                 icon="folder-images"
-                onPress={() => navigation.navigate('DetailsPage')}
+                onPress={() => navigation.navigate('GalleryPage')}
               />
                <HollowCircle size={coinValue*(750/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" />
             </View>

@@ -11,7 +11,7 @@ const Navigator = () => {
     <Stack.Navigator initialRouteName="WelcomePage" screenOptions={{headerShown: true}}>
       <Stack.Screen name="WelcomePage" component={WelcomePage} />
       <Stack.Screen name="CameraPage" component={CameraPage} unmountOnBlur={true}/>
-      <Stack.Screen name="DetailsPage" component={GalleryPage} />
+      <Stack.Screen name="GalleryPage" component={GalleryPage} />
     </Stack.Navigator>
   );
 };

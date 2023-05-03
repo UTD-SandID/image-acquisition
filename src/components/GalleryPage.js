@@ -3,15 +3,51 @@ import { FlatList, Text, View, StyleSheet, TouchableOpacity, Image, useWindowDim
 import Button from './Button';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-//import { Share } from 'react-native';
-//import * as FileSystem from 'expo-file-system';
-//import Exif from 'exif-js';
+import { Share } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import Exif from 'exif-js';
+import LoginDialog from './LoginDialog';
+import { Buffer } from 'buffer';
 
 //will become gallery page
 export default function GalleryPage({navigation}) {
 
-  const [images, setImages] = useState([]);
+  const [image, setImages] = useState([]);
   const { width } = useWindowDimensions();
+  const [showDialog, setShowDialog] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [coinValue, setCoinValue] = useState(3.0);
+  const [LatitudeValue, setLat] = useState(1);
+  const [LongitudeValue, setLong] = useState(2);
+
+  const handleSend = () => {
+    if(username=='' || password==''||password==undefined||username==undefined){
+      setShowDialog(true);
+
+    }
+    else {
+      sendImg();
+    }
+    
+  };
+
+  const handleUserSave = (newUsername, newPassword) => {
+    setUsername(newUsername);
+    setPassword(newPassword);
+  };
+
+  const closeDia = () => {
+    if(username=='' || password==''||password==undefined||username==undefined){
+      setShowDialog(true);
+
+    }
+    else {
+      setShowDialog(false);
+      sendImg();
+    }
+    
+  };
 
   const pickImages = async () => {
 
@@ -35,26 +71,51 @@ export default function GalleryPage({navigation}) {
 
   };
 
-  /*const onShare = async () => {
-    try {
-      const result = await Share.share({
-        message: images.join('\n'), // join all images with a new line separator
-      });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };*/
+  const sendImg = async () => {
+    console.log(image[0]);
+    console.log('sending');
+    console.log(username);
+    
+    const fileName = ('`${username}_${timestamp}.jpg`');
+    console.log(fileName);
+   
+    const formData = new FormData();
+    formData.append("image", {
+      uri: image[0],
+      type: "image/jpeg",
+      name: fileName,
+    });
+    formData.append("latitude", LatitudeValue);
+    formData.append("longitude", LongitudeValue);
+    formData.append("coin", coinValue);
+    formData.append("image_uri", image[0]);
 
-  const sendTemp = async () => {
+    
+    fetch('http://18.189.83.39:8000/api/upload/', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+        'Content-Type': 'multipart/form-data'
+      },
+      body: formData
+    })
+    .then(response => {
+      // handle the response
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.log(JSON.stringify(response));
+        throw new Error(response);
+      }
+    })
+    .catch(error => {
+      // handle the error
+      console.error(error.message);
+    });
+    
+  };
+
+ /* const sendTemp = async () => {
     console.log('will send');
   }
   const sendImg = async () => {
@@ -76,7 +137,7 @@ export default function GalleryPage({navigation}) {
         }
       });
   
-      const response = await fetch('https://mywebsite.example/endpoint/', {
+      const response = await fetch('http://18.189.83.39:8000/api/upload/', {
         method: 'POST',
         headers: {
           'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
@@ -95,15 +156,82 @@ export default function GalleryPage({navigation}) {
       console.error(error.message);
     }
   };
+/*
+  const sendImg = async () => {
+    
+    //const fileName = (`${username}_${timestamp}.jpg`);
+    //console.log(fileName)
+
+    try {
+
+    console.log('sending');
+    console.log(username);
+
+    const formData = new FormData();
+
+    image.forEach((image, index) => {
+      formData.append('image' + index, {
+        uri: image,
+        name: 'image' + index + '.jpg',
+        type: image + '/jpeg',
+      });
+
+      formData.append("latitude", LatitudeValue);
+      formData.append("longitude", LongitudeValue);
+      formData.append("coin", coinValue)
+      /*try {
+
+        const exifData = Exif.parse(image);
+        const {latitude, longitude} = exifData.gps || {};
+        if (latitude && longitude) {
+          formData.append('lat' + index, latitude);
+          formData.append('long' + index, longitude);
+        }
+      } catch (error) {
+        console.error('Error Parsing EXIF data:', error);
+      }
+      
+    });
+
+    fetch('http://18.189.83.39:8000/api/upload/', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+        //'Content-Type': 'multipart/form-data'
+      },
+      body: formData
+    })
+    .then(response => {
+      // handle the response
+      if (response.ok) {
+        return response.json();
+      } else {
+        console.log(JSON.stringify(response));
+        throw new Error(response);
+      }
+    })
+    .catch(error => {
+      // handle the error
+      console.error(error.message);
+    });
+
+  } catch (error) {
+    console.error(error.message);
+  }
+    
+  };*/
 
   const CustomHeader = () => {
     return (
       <SafeAreaView style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>DetailsPage</Text>
+        <Text style={styles.headerTitle}>Gallery Page</Text>
        
-        <TouchableOpacity style={styles.headerButton} onPress={sendTemp}>
-          <Text style={styles.headerButtonText}>Share</Text>
-        </TouchableOpacity>
+        <Button title="Send" onPress={handleSend} icon="export" /> 
+                <LoginDialog
+                  isVisible={showDialog}
+                  onSave={handleUserSave}
+                  onClose={() => {closeDia();}}
+                />
         <TouchableOpacity style={styles.headerButton} onPress={pickImages}>
           <Text style={styles.headerButtonText}>Pick Images</Text>
         </TouchableOpacity>
@@ -117,7 +245,7 @@ export default function GalleryPage({navigation}) {
           <CustomHeader />
         }
 
-        data={images}
+        data={image}
         renderItem={({ item }) => (
           <Image
             source={{ uri: item }}
@@ -161,9 +289,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-  /*
- <Button
-        title="Back to camera"
-        onPress={() => navigation.goBack()}
-      />
-  */
