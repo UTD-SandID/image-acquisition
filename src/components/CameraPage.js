@@ -275,7 +275,7 @@ export default function CameraPage({ navigation, route }) {
               <Button
                 title=""//Gallery
                 icon="folder-images"
-                onPress={() => navigation.navigate('GalleryPage')}
+                onPress={() => navigation.navigate('GalleryPage', {text: {coinValue}})}
               />
                <HollowCircle size={coinValue*(750/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" />
             </View>

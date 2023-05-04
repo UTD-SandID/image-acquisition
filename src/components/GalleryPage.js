@@ -9,18 +9,28 @@ import Exif from 'exif-js';
 import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
 import { Buffer } from 'buffer';
+import { Camera, CameraType, ImageType } from 'expo-camera';
+import { ExpoCamera } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+import { Alert } from 'react-native';
 
 //will become gallery page
-export default function GalleryPage({navigation}) {
+export default function GalleryPage({navigation, route}) {
 
   const [image, setImages] = useState([]);
   const { width } = useWindowDimensions();
   const [showDialog, setShowDialog] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [coinValue, setCoinValue] = useState(3.0);
-  const [LatitudeValue, setLat] = useState(1);
-  const [LongitudeValue, setLong] = useState(2);
+  const [coinValue, setCoinValue] = useState('');
+
+  var coinFinal = route.params.text.coinValue;
+
+  useEffect(() => {
+    setCoinValue(coinFinal);
+  },[]);
+
+  
 
   const handleSend = () => {
     if(username=='' || password==''||password==undefined||username==undefined){
@@ -28,7 +38,7 @@ export default function GalleryPage({navigation}) {
 
     }
     else {
-      sendImg();
+      getCoords();
     }
     
   };
@@ -72,141 +82,57 @@ export default function GalleryPage({navigation}) {
 
   };
 
- /* const sendImg = async () => {
-    console.log(image[0]);
-    console.log('sending');
-    console.log(username);
-    
-    const fileName = ('hjgjjhg.jpg');
-    console.log(fileName);
-   
-    const formData = new FormData();
-    formData.append("image", {
-      uri: image[0],
-      type: "image/jpeg",
-      name: fileName,
-    });
-    formData.append("latitude", LatitudeValue);
-    formData.append("longitude", LongitudeValue);
-    formData.append("coin", coinValue);
-    formData.append("image_uri", image[0]);
+  const getCoords = async () => {
+    for (let i = 0; i < image.length; i++) {
 
-    
-    fetch('http://75.12.150.23:8000/api/upload/', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-        'Content-Type': 'multipart/form-data'
-      },
-      body: formData
-    })
-    .then(response => {
-      // handle the response
-      if (response.ok) {
-        return response.json();
-      } else {
-        console.log(JSON.stringify(response));
-        throw new Error(response);
-      }
-    })
-    .catch(error => {
-      // handle the error
-      console.error(error.message);
-    });
-    
-  };*/
-
- /* const sendTemp = async () => {
-    console.log('will send');
-  }
-  const sendImg = async () => {
-    try {
-      const formData = new FormData();
-  
-      images.forEach((image, index) => {
-        formData.append('image' + index, {
-          uri: image,
-          name: 'image' + index + '.jpg',
-          type: 'image/jpeg'
-        });
-  
-        const exifData = Exif.parse(image);
-        const {latitude, longitude} = exifData.gps || {};
-        if (latitude && longitude) {
-          formData.append('lat' + index, latitude);
-          formData.append('long' + index, longitude);
-        }
-      });
-  
-      const response = await fetch('http://18.189.83.39:8000/api/upload/', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-  
-      if (!response.ok) {
-        throw new Error('Server response was not ok.');
-      }
-  
-      const result = await response.json();
-      console.log(result);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };*/
-
-  const sendImg = async () => {
-    
-    //const fileName = (`${username}_${timestamp}.jpg`);
-    //console.log(fileName)
-
-    try {
-
-    console.log('sending');
-    console.log(username);
-
-    const formData = new FormData();
-
-    image.forEach((image, index) => {
-        formData.append('image', {
-        uri: image,
-        type: image + '/jpeg',
-        name: 'image' + index + '.jpg',
-        });
-
-        const imageURI = (image[index]);
-
-        Exif.getData(imageURI, function() {
-          LatitudeValue = Exif.getTag(this, 'GPSLatitude');
-          LongitudeValue = Exif.getTag(this, 'GPSLatitudeRef');
-          console.log(LatitudeValue);
-          console.log(LongitudeValue);
-        });
-        
-        console.log(LatitudeValue);
-        console.log(LongitudeValue);
-        
-        console.log(LatitudeValue);
-        console.log(LongitudeValue);
-        console.log(image);
-      /*try {
-
-        
-        /*if (LatitudeValue && LongitudeValue) {
-          formData.append('latitude', LatitudeValue);
-          formData.append('longitude', LongitudeValue);
-        }
-      } catch (error) {
-        console.error('Error Parsing EXIF data:', error);
-      }*/
+      let latitudeValue = null;
+      let longitudeValue = null;
       
-      formData.append('latitude', LatitudeValue);
-      formData.append('longitude', LongitudeValue);
+      await new Promise((resolve) => {
+        navigation.navigate('CoordinatePage', {
+          onSubmit: (latitude, longitude) => {
+            latitudeValue = latitude;
+            longitudeValue = longitude;
+            resolve();
+          },
+        });
+      });
+
+      const currentDate = new Date();
+      const dateString = currentDate.toString();
+      
+      const newTime = dateString.replace(/[: ]/g, '-');
+      console.log(newTime);
+
+      sendImg(image[i], latitudeValue, longitudeValue, newTime);
+    };
+  };
+
+  const sendImg = async (image, latitudeValue, longitudeValue, newTime) => {
+
+    try {
+
+      console.log('sending');
+      console.log(username);
+
+      const formData = new FormData();
+      const fileName = (`${username}_${newTime}.jpg`);
+
+      formData.append('image', {
+      uri: image,
+      type: image + '/jpeg',
+      name: fileName,
+      });
+
+      formData.append('latitude', latitudeValue);
+      formData.append('longitude', longitudeValue);
       formData.append("coin", coinValue);
       formData.append("image_uri", image);
+
+      console.log(latitudeValue);
+      console.log(longitudeValue);
+      console.log(coinValue);
+      console.log(image);
 
       fetch('http://75.12.150.23:8000/api/upload/', {
       method: 'POST',
@@ -228,8 +154,6 @@ export default function GalleryPage({navigation}) {
     .catch(error => {
       // handle the error
       console.error(error.message);
-    });
-      
     });
 
   } catch (error) {
