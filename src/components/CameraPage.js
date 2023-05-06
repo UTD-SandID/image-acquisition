@@ -210,7 +210,7 @@ export default function CameraPage({ navigation, route }) {
       });
       formData.append("latitude", LatitudeValue);
       formData.append("longitude", LongitudeValue);
-      formData.append("coin", coinValue)
+      formData.append("coin", coinValue);
       formData.append("image_uri", image);
   
       
