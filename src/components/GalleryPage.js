@@ -23,7 +23,7 @@ export default function GalleryPage({navigation, route}) {
     setCoinValue(coinFinal);
   },[]);
 
-  
+
 
   const handleSend = () => {
     if(username=='' || password==''||password==undefined||username==undefined){
@@ -71,7 +71,6 @@ export default function GalleryPage({navigation, route}) {
         setImages((prevImages) => [...prevImages, result.uri]);
       }
     }
-
 
   };
 
@@ -158,7 +157,7 @@ export default function GalleryPage({navigation, route}) {
   const CustomHeader = () => {
     return (
       <SafeAreaView style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Gallery Page</Text>
+        <Text style={styles.headerTitle}>Gallery Select</Text>
        
         <Button  title="Send" onPress={handleSend} icon="export" color="#007AFF" /> 
                 <LoginDialog
