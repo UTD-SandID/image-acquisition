@@ -12,6 +12,9 @@ import HollowCircle from './HollowCircle';
 
 export default function CameraPage({ navigation, route }) {
   
+  const IPHONE_VIEW_WIDTH = 370; //starter value
+  const MIN_PIXEL_PER_IN = 750; //coin pixel width
+
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [hasLocationPermission, setHasLocationPermission] = useState(null);
     const [image, setImage] = useState(null);
@@ -25,12 +28,13 @@ export default function CameraPage({ navigation, route }) {
     const [LatitudeValue, setLat] = useState(null);
     const [LongitudeValue, setLong] = useState(null);
     const [timestamp, setTime] = useState(null);
+    
     const [calibrated, setCalib] = useState(false);
     const [showDialog, setShowDialog] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [coinValue, setCoinValue] = useState(null);
-    const [viewWidth, setViewWidth] = useState(370);
+    const [viewWidth, setViewWidth] = useState(IPHONE_VIEW_WIDTH);
 
     //recieve coin type from welcom page and assign value
     useEffect(() => {
@@ -286,7 +290,7 @@ export default function CameraPage({ navigation, route }) {
                 onPress={() => navigation.navigate('GalleryPage', {text: {coinValue}})}
               />
               
-               <HollowCircle size={coinValue*(750/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" 
+               <HollowCircle size={coinValue*(MIN_PIXEL_PER_IN/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" 
                //scaled coin outline. Calculation: coin diameter in inch*(necessary pixels per inch/image resolution width)*width of view in pixels
                //calculates minimum size for coin outline on screen using actual coin size
                //ensures at least 750 pixels per inch for image processing
