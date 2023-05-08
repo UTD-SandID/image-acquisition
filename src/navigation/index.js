@@ -9,7 +9,7 @@ const Stack = createStackNavigator();
 
 const Navigator = () => {
   return (
-    <Stack.Navigator initialRouteName="WelcomePage" screenOptions={{headerShown: true}}>
+    <Stack.Navigator initialRouteName="WelcomePage" screenOptions={{headerShown: true, title: ''}}>
       <Stack.Screen name="WelcomePage" component={WelcomePage} />
       <Stack.Screen name="CameraPage" component={CameraPage} unmountOnBlur={true}/>
       <Stack.Screen name="GalleryPage" component={GalleryPage} />

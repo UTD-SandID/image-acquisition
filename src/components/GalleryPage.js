@@ -3,18 +3,11 @@ import { FlatList, Text, View, StyleSheet, TouchableOpacity, Image, useWindowDim
 import Button from './Button';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Share } from 'react-native';
-import * as FileSystem from 'expo-file-system';
-import Exif from 'exif-js';
-import * as Location from 'expo-location';
 import LoginDialog from './LoginDialog';
 import { Buffer } from 'buffer';
-import { Camera, CameraType, ImageType } from 'expo-camera';
-import { ExpoCamera } from 'expo-camera';
-import * as MediaLibrary from 'expo-media-library';
-import { Alert } from 'react-native';
 
-//will become gallery page
+
+
 export default function GalleryPage({navigation, route}) {
 
   const [image, setImages] = useState([]);
@@ -167,7 +160,7 @@ export default function GalleryPage({navigation, route}) {
       <SafeAreaView style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Gallery Page</Text>
        
-        <Button title="Send" onPress={handleSend} icon="export" /> 
+        <Button  title="Send" onPress={handleSend} icon="export" color="#007AFF" /> 
                 <LoginDialog
                   isVisible={showDialog}
                   onSave={handleUserSave}
@@ -196,7 +189,7 @@ export default function GalleryPage({navigation, route}) {
             
         )}
         keyExtractor={(item) => item}
-        contentContainerStyle={{ marginVertical: 100, paddingBottom: 100 }}
+        contentContainerStyle={{ marginVertical: 1, paddingBottom: 10 }}
         
     />
   );

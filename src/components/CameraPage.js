@@ -15,7 +15,7 @@ export default function CameraPage({ navigation, route }) {
     const [hasCameraPermission, setHasCameraPermission] = useState(null);
     const [hasLocationPermission, setHasLocationPermission] = useState(null);
     const [image, setImage] = useState(null);
-    const [type, setType] = useState(Camera.Constants.Type.back); 
+    //const [type, setType] = useState(Camera.Constants.Type.back);  was for flipping camera
    // const [flash, setFlash] = useState(Camera.Constants.FlashMode.off); was for flash
     const cameraRef = useRef(null);
 
@@ -32,6 +32,7 @@ export default function CameraPage({ navigation, route }) {
     const [coinValue, setCoinValue] = useState(null);
     const [viewWidth, setViewWidth] = useState(370);
 
+    //recieve coin type from welcom page and assign value
     useEffect(() => {
      (async () => {  
        var coinChoice = route.params.text;
@@ -57,6 +58,7 @@ export default function CameraPage({ navigation, route }) {
 
 
     //when this page is opened, check for and request permissions, prompt user to take calibration picture
+    //if no permission, error text displayed instead of view
     useEffect(() => {
       (async () => {
         MediaLibrary.requestPermissionsAsync();
@@ -64,13 +66,13 @@ export default function CameraPage({ navigation, route }) {
         setHasCameraPermission(cameraStatus.status === 'granted');
         const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
         setHasLocationPermission(locationStatus === 'granted');
-       // const location = await Location.getCurrentPositionAsync({});
-        //setLoc(location);
+
+        //if image height and width not assigned yet, take calibration picture
         if(widthVal==null||heightVal==null){
            
             Alert.alert(  
                 'Initial Calibration',  
-                'Please take a picture to calibrate the camera.',  
+                'Please take any picture to calibrate the camera.',  
                 [   
                     {text: 'OK', onPress: () => console.log('OK Pressed')},  
                 ]  
@@ -79,7 +81,7 @@ export default function CameraPage({ navigation, route }) {
       })();
     }, []);
 
-    //use Effects for state updates
+    //use Effects for state updates synchronization
     useEffect(() => {
       console.log(`Updated exif Metadata`);      
       //console.log(metaData);
@@ -100,18 +102,21 @@ export default function CameraPage({ navigation, route }) {
       console.log(`new coinVal : ${coinValue}`);
     }, [coinValue]);
    
-  
+  //reset after calibration
     const handleCalib = () => {
-      setCalib(true);
+      setCalib(true); //only once, change view
       setImage(null);
       console.log(`width of view : ${viewWidth}`);
     };
 
+    //save login info from dialog, called by save button on dialog
     const handleUserSave = (newUsername, newPassword) => {
       setUsername(newUsername);
       setPassword(newPassword);
     };
 
+    //if login info not available, show dialog
+    //called by send button
     const handleSend = () => {
       if(username=='' || password==''||password==undefined||username==undefined){
         setShowDialog(true);
@@ -123,6 +128,8 @@ export default function CameraPage({ navigation, route }) {
       
     };
 
+    //close dialog and send image with information once entered
+    //reopens if nothing entered
     const closeDia = () => {
       if(username=='' || password==''||password==undefined||username==undefined){
         setShowDialog(true);
@@ -140,24 +147,27 @@ export default function CameraPage({ navigation, route }) {
     const takePicture = async () => {
       if (cameraRef) {
         try {
-          const picOptions = {exif:true,imageType:'jpg',quality:1};
-          const { uri, width, height, exif } = await cameraRef.current.takePictureAsync(picOptions);
+          const picOptions = {exif:true,imageType:'jpg',quality:1}; //image settings
+          const { uri, width, height, exif } = await cameraRef.current.takePictureAsync(picOptions); //take pic and get info
 
           setImage(uri);
           setWidth(width);
           setHeight(height);
 
           const location = await Location.getCurrentPositionAsync({});
-          //setLoc(location);
+
+          //set location metadata in image
           exif['GPSLatitude'] = location.coords.latitude;
           exif['GPSLatitudeRef'] = location.coords.latitude < 0 ? 'S' : 'N';
           exif['GPSLongitude'] = location.coords.longitude;
           exif['GPSLongitudeRef'] = location.coords.longitude < 0 ? 'W' : 'E';
           
+          //timestamp for filename from metadata
           const timeNow = exif['DateTimeOriginal'];
           const formattedTimestamp = timeNow.replace(/[: ]/g, '-');
           exif['imgFileDate'] = formattedTimestamp;
           
+          //set data
           setMeta(exif);
           setTime(formattedTimestamp);
 
@@ -185,7 +195,7 @@ export default function CameraPage({ navigation, route }) {
       if (image) {
         try {
           const asset = await MediaLibrary.createAssetAsync(image);
-          alert('Picture saved!');
+          alert('Picture saved!'); //inform user
           setImage(null);
           console.log('saved successfully');
         } catch (error) {
@@ -194,14 +204,17 @@ export default function CameraPage({ navigation, route }) {
       }
     };
 
-    //awaits may be needed?  
+    //send POST request with image, including location and login info
+    //will not be called until all info available, see handleSend
     const sendImg = async () => {
       console.log('sending');
       console.log(username);
       
+      //uniques filename, keep track of user and time for organization and retrieving bad images on server
       const fileName = (`${username}_${timestamp}.jpg`);
       console.log(fileName)
      
+      //blob format in order to send image, append necessary data
       const formData = new FormData();
       formData.append("image", {
         uri: image,
@@ -217,6 +230,7 @@ export default function CameraPage({ navigation, route }) {
       fetch('http://75.12.150.23:8000/api/upload/', {
         method: 'POST',
         headers: {
+          //login info in header, base 64 encoded
           'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
           'Content-Type': 'multipart/form-data'
         },
@@ -248,14 +262,14 @@ export default function CameraPage({ navigation, route }) {
     //when view renders, onLayout saves width of view, used to scale coin outline
     return (
       <View style={styles.container} onLayout={event => setViewWidth(event.nativeEvent.layout.width)}>
-
-        {!image ? (
         
+        {!image ? (
+        //show camera when no picture taken
           <Camera
             style={styles.camera}
             type={Camera.Constants.Type.back}
             ref={cameraRef}
-            //flashMode={flash}
+            //flashMode={flash} not used
           >
             <View
               style={{
@@ -264,29 +278,32 @@ export default function CameraPage({ navigation, route }) {
                 paddingHorizontal: 30,
               }}
             >
-              <Button
-                title=""//flip
-                icon="retweet"
-                onPress={() => {
-                  setType(type === CameraType.back ? CameraType.front : CameraType.back);
-                  // flipped camera to front, use button for smtg else
-                }}
-              />
+              <View /> 
+
               <Button
                 title=""//Gallery
                 icon="folder-images"
                 onPress={() => navigation.navigate('GalleryPage', {text: {coinValue}})}
               />
-               <HollowCircle size={coinValue*(750/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" />
+              
+               <HollowCircle size={coinValue*(750/widthVal)*viewWidth} borderWidth={5} color = "rgba(255, 255, 255, 0.6)" 
+               //scaled coin outline. Calculation: coin diameter in inch*(necessary pixels per inch/image resolution width)*width of view in pixels
+               //calculates minimum size for coin outline on screen using actual coin size
+               //ensures at least 750 pixels per inch for image processing
+               />
+           
             </View>
           </Camera>
           
         ) : (
-          <Image source={{ uri: image }} style={styles.camera} />
+          <Image source={{ uri: image }} style={styles.camera} 
+          //show image when taken
+          />
         )}
         
         <View style={styles.controls}>
           {image ? (
+            //buttons for pictures taken after calibration picture
             calibrated ? (
               <View style={{
                 flexDirection: 'row',
@@ -297,13 +314,16 @@ export default function CameraPage({ navigation, route }) {
                 <Button title="Save" onPress={savePicture} icon="check" />
                 <Button title="Send" onPress={handleSend} icon="export" /> 
                 <LoginDialog
+                //opened if login info empty
                   isVisible={showDialog}
                   onSave={handleUserSave}
-                  onClose={() => {closeDia();}}
+                  onClose={() => {closeDia();}} //checks if info entered, reopens if not
                 />
               </View>
             ) : (
-              <Button title="Done" onPress={handleCalib} icon="camera" />
+              <Button title="Done" onPress={handleCalib} icon="camera"
+              //for one time calibration pic
+              />
             )
           ) : (
             <Button title="Take a picture" onPress={takePicture} icon="camera" />
@@ -348,6 +368,17 @@ export default function CameraPage({ navigation, route }) {
     },
   });
   /*
+  was in top bar with gallery button
+ <Button
+                title=""//flip
+                icon="retweet"
+                onPress={() => {
+                  setType(type === CameraType.back ? CameraType.front : CameraType.back);
+                  // flipped camera to front, could use button for smtg else
+                }}
+              />
+
+
    overlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: 'rgba(0, 0, 0, 0.3)',
